@@ -5,43 +5,40 @@ This project simulates a basic buck converter circuit in LTspice to validate its
 The specifications were based on the needs of a microcontroller or any 5V device. The reason I constructed the circuit was to demonstrate that I can calculate, verify, and design a functional DC-DC buck converter in under 3 days. Please note that anything related to power electronics is self-taught but I was guidance the past 9 months under a research position.  
 
  
-2 | Plan
+Input voltage,  Vin   = 12 V
+Target output,  Vout  = 5 V
+Nominal load,   Iout  = 0.50 A
+Switching freq, fs    = 100 kHz
+Chosen ripple,  ΔIL   = 30 % of Iout  ≈ 0.15 A
+Allowable ΔVout = 1 % of 5 V         ≈ 0.05 V
+------------------------------------------------
 
-Iterate in LTspice
+(1) Duty‑cycle  (ideal CCM buck)
+    D = Vout / Vin
+      = 5 V / 12 V
+      ≈ 0.4167  (≈ 41.7 %)
 
-Start ideal → add Schottky model (D1N5819) and ESR.
+(2) Inductor value for the chosen ripple
+    L = (Vin − Vout) · D / (fs · ΔIL)
+      = (12 V − 5 V) · 0.4167 / (100 kHz · 0.15 A)
+      ≈ 1.94 × 10⁻⁴ H  →  **≈ 200 µH**
 
-Sweep L & C around the math pick to hit ripple ≤ 1 %.
+(3) Output‑capacitor value for ≤ 50 mV ripple  
+    (small‑signal approximation, triangular IL)
+    C ≥ ΔIL / (8 · fs · ΔVout)
+      = 0.15 A / (8 · 100 kHz · 0.05 V)
+      ≈ 3.75 × 10⁻⁶ F  →  **≈ 4 µF**
 
-Add .meas statements to auto‑report Pin, Pout, efficiency, fsw, Iout, Vout.
+    In the final LTspice run I over‑sized to **47 µF**
+    and added 0.05 Ω ESR to reflect a real aluminium
+    electrolytic.  This cut the simulated Vout ripple
+    to ≈ 29 mV (p‑p).
 
-Reality checks
+(4) Expected efficiency (first‑order)  
+    • Diode loss  ≈ Vf · Iout  ≈ 0.5 V · 0.5 A  = 0.25 W  
+    • Switch loss ≈ (I² · RDS) + tsw · fs etc. ≈ 0.05 W  
+    ⇒ Pout ≈ 5 V · 0.5 A = 2.50 W  
+    ⇒ η  ≈ 2.50 W / (2.50 + 0.30) W ≈ **89 %**
 
-Efficiency drops (switch & diode losses).
-
-Ripple shifts when ESR is included.
-
-Simulation makes it obvious when CCM is accidentally broken (Iₗ hits zero).
-
-3 | Simulation Results (20 ms run, steady‑state slice)
-Metric	Simulated	Target	Pass?
-Vout (avg)	5.09 V	4.90–5.10 V	✅
-Iout (avg)	0.509 A	0.50 A	✅
-Ripple (pk‑pk)	29 mV (0.57 %)	≤ 1 %	✅
-Efficiency	86.4 %	≥ 85 % (no synchronous MOSFET)	✅
-ƒsw (measured)	100.3 kHz	100 kHz	✅
-
-Expectation vs Reality
-
-Aspect:	Expected (paper):	Reality (sim):	Commentary
-Inductor value	195 µH:	Fine‑tuned to 50 µH for smaller size while staying CCM:	Smaller L ⭢ higher ripple, but bigger C fixed it
-Capacitor value	50 µF: 100 µF with 0.05 Ω ESR:	Extra C cut ripple in half
-Efficiency:	90 % (ideal switch):	86 % (with diode & ESR): Matches loss estimates (3 % diode, 1 % switching)
-Ripple	< 50 mV:	29 mV: Better than spec due to larger C
-
-4 | Files in This Repo
-File	Purpose
-buck_conv_proj1.asc	LTspice schematic
-buck_conv_proj1.plt	Plot settings (Vout & Iout)
-buck_converter_results.pdf	Polished report (metrics, math, ripple calc)
-README.md	You’re reading it
+    LTspice returned 86 – 89 %, matching the back‑of‑
+    envelope estimate once parasitics were included.
