@@ -2,7 +2,7 @@
 This project simulates a basic buck converter circuit in LTspice to validate its performance against design specifications.
 
 1 | Background
-The specifications were based on the needs of a microcontroller or any 5V device. The reason I constructed the circuit was to demonstrate that I can calculate, verify, and design a functional DC-DC buck converter in under 3 days. Please note that anything related to power electronics is self-taught but I was guidance the past 9 months under a research position.  
+The specifications were based on the needs of a microcontroller or any 5V device. The reason I constructed the circuit was to demonstrate that I can calculate, verify, and design a functional DC-DC buck converter in under 3 days. Please note that anything related to power electronics is self-taught.  
 
  
 Input voltage,  Vin   = 12 V
